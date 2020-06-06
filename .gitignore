@@ -1,0 +1,14 @@
+*.pyc
+*~
+*.swp
+pulpkey/dev.py
+!shortner/migrations/
+shortner/migrations/*
+.idea
+.iml
+.project
+.pydevproject
+.metadata/
+.settings/
+.DS_Store
+**/.DS_Store

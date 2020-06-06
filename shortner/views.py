@@ -3,24 +3,51 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render
 
-from rest_framework.views import APIView
+from rest_framework import status, generics
 from rest_framework.response import Response
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import AllowAny
-from .serializer import GetURLSerializer, UrlSerializer
+from rest_framework.pagination import LimitOffsetPagination
+
+from .models import Urls
+from .serializer import UrlSerializer
+
+from django.shortcuts import redirect
 
 # Create your views here.
-class UrlShortner(APIView):
+class UrlShortner(generics.GenericAPIView):
 	permission_classes = (AllowAny,)
+	serializer_class = UrlSerializer
+	queryset = Urls.objects.all()
+
 	def get(self, request):
-		url_serializer = GetURLSerializer(data = request.GET)
-		if url_serializer.is_valid():
-			page = url_serializer.data['page']
+		queryset = self.get_queryset()
+		page = self.request.query_params.get('page')
+		# If the page is there
+		if page is not None:
+			paginate_queryset = self.paginate_queryset(queryset)
+			serializer = self.serializer_class(paginate_queryset, many=True)
+			return self.get_paginated_response(serializer.data)
 
-			start_index = (page - 1) * 15
-			end_index = page * 15
+		# If the page is not present
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-			urls = UrlSerializer(Urls.objects.all()[start_index:end_index])
-			
-			return Response({"status": True, "data": urls})
-		return Response({"status": False, "reason": "page number not passed"})
+
+	def post(self, request):
+		serializer = UrlSerializer(data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def url_redirector(request, short_code):
+	try:
+		url = Urls.objects.get(short_name=short_code)
+		url.clicked = url.clicked + 1
+		url.save()
+		
+		return redirect(url.original_url)
+
+	except Urls.DoesNotExist:
+		return Response({"reason":"bad_url"}, status=status.HTTP_400_BAD_REQUEST)
+

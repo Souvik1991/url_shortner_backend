@@ -16,10 +16,10 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-from shortner.views import UrlShortner
+from shortner.views import UrlShortner, url_redirector
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-
-    url(r'^api/v1/url-shortner/', UrlShortner.as_view(), name="url_shortner")
+    url(r'^api/v1/url-shortner/', UrlShortner.as_view(), name="url_shortner"),
+    url(r'^(?P<short_code>[\w=\-]+)/', url_redirector, name='url_redirector'),
 ]

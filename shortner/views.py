@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import json
+
 from django.shortcuts import render
 
 from rest_framework import status, generics
@@ -11,6 +13,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from .models import Urls
 from .serializer import UrlSerializer
 
+from django.http import HttpResponse
 from django.shortcuts import redirect
 
 # Create your views here.
@@ -45,9 +48,10 @@ def url_redirector(request, short_code):
 		url = Urls.objects.get(short_name=short_code)
 		url.clicked = url.clicked + 1
 		url.save()
-		
+
 		return redirect(url.original_url)
 
 	except Urls.DoesNotExist:
-		return Response({"reason":"bad_url"}, status=status.HTTP_400_BAD_REQUEST)
+		return HttpResponse(json.dumps({"reason":"bad"}), content_type="application/json")
+		# return Response({"reason": "bad_url"}, status=status.HTTP_400_BAD_REQUEST)
 

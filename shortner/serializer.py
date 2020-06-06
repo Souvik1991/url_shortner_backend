@@ -2,17 +2,13 @@ from rest_framework import serializers
 
 from .models import Urls
 
-class GetURLSerializer(serializers.Serializer):
-	page = serializers.IntegerField(required = True)
-
-
 class UrlSerializer(serializers.ModelSerializer):
 	short_name = serializers.CharField(required=True, allow_blank=False, max_length=250)
 	original_url = serializers.CharField(required=True, allow_blank=False)
 	
 	def create(self, validated_data):
 		"""
-		Create a return a new `Project` instance, given the validated data
+		Create a return a new `Urls` instance, given the validated data
 		"""
 		try:
 			return Urls.objects.create(**validated_data)
